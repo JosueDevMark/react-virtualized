@@ -2,6 +2,7 @@
 import PropTypes from 'prop-types';
 import * as React from 'react';
 import defaultHeaderRenderer from './defaultHeaderRenderer';
+import defaultFooterRenderer from './defaultFooterRenderer';
 import defaultCellRenderer from './defaultCellRenderer';
 import defaultCellDataGetter from './defaultCellDataGetter';
 import SortDirection from './SortDirection';
@@ -59,8 +60,17 @@ export default class Column extends React.Component {
      */
     headerRenderer: PropTypes.func.isRequired,
 
+    /**
+     * Optional callback responsible for rendering a column Footer contents.
+     * ({ columnData: object, dataKey: string, disableSort: boolean, label: node, sortBy: string, sortDirection: string }): PropTypes.node
+     */
+    footerRenderer: PropTypes.func.isRequired,
+
     /** Optional inline style to apply to this column's header */
     headerStyle: PropTypes.object,
+
+    /** Optional inline style to apply to this column's footer */
+    footerStyle: PropTypes.object,
 
     /** Optional id to set on the column header */
     id: PropTypes.string,
@@ -88,6 +98,8 @@ export default class Column extends React.Component {
     flexGrow: 0,
     flexShrink: 1,
     headerRenderer: defaultHeaderRenderer,
+    footerRenderer: defaultFooterRenderer,
+    footerStyle: {},
     style: {},
   };
 }

@@ -11,6 +11,7 @@ import Grid, {accessibilityOverscanIndicesGetter} from '../Grid';
 
 import defaultRowRenderer from './defaultRowRenderer';
 import defaultHeaderRowRenderer from './defaultHeaderRowRenderer';
+import defaultFooterRowRenderer from './defaultFooterRowRenderer';
 import SortDirection from './SortDirection';
 
 /**
@@ -48,6 +49,9 @@ export default class Table extends React.PureComponent {
     /** Disable rendering the header at all */
     disableHeader: PropTypes.bool,
 
+    /** Disable rendering the header at all */
+    disableFooter: PropTypes.bool,
+
     /**
      * Used to estimate the total height of a Table before all of its rows have actually been measured.
      * The estimated total height is adjusted as rows are rendered.
@@ -63,6 +67,9 @@ export default class Table extends React.PureComponent {
     /** Optional CSS class to apply to all column headers */
     headerClassName: PropTypes.string,
 
+    /** Optional CSS class to apply to all column headers */
+    footerClassName: PropTypes.string,
+
     /** Fixed height of header row */
     headerHeight: PropTypes.number.isRequired,
 
@@ -76,8 +83,21 @@ export default class Table extends React.PureComponent {
      */
     headerRowRenderer: PropTypes.func,
 
+    /**
+     * Responsible for rendering a table row given an array of columns:
+     * Should implement the following interface: ({
+     *   className: string,
+     *   columns: any[],
+     *   style: any
+     * }): PropTypes.node
+     */
+    footerRowRenderer: PropTypes.func,
+
     /** Optional custom inline style to attach to table header columns. */
     headerStyle: PropTypes.object,
+
+    /** Optional custom inline style to attach to table header columns. */
+    footerStyle: PropTypes.object,
 
     /** Fixed/available height for out DOM element */
     height: PropTypes.number.isRequired,
@@ -235,9 +255,11 @@ export default class Table extends React.PureComponent {
 
   static defaultProps = {
     disableHeader: false,
+    disableFooter: true,
     estimatedRowSize: 30,
     headerHeight: 0,
     headerStyle: {},
+    footerStyle: {},
     noRowsRenderer: () => null,
     onRowsRendered: () => null,
     onScroll: () => null,
@@ -245,6 +267,7 @@ export default class Table extends React.PureComponent {
     overscanRowCount: 10,
     rowRenderer: defaultRowRenderer,
     headerRowRenderer: defaultHeaderRowRenderer,
+    footerRowRenderer: defaultFooterRowRenderer,
     rowStyle: {},
     scrollToAlignment: 'auto',
     scrollToIndex: -1,
@@ -350,10 +373,12 @@ export default class Table extends React.PureComponent {
       children,
       className,
       disableHeader,
+      disableFooter,
       gridClassName,
       gridStyle,
       headerHeight,
       headerRowRenderer,
+      footerRowRenderer,
       height,
       id,
       noRowsRenderer,
@@ -435,6 +460,16 @@ export default class Table extends React.PureComponent {
             overflowX: 'hidden',
           }}
         />
+
+        {!disableFooter &&
+          footerRowRenderer({
+            className: clsx('ReactVirtualized__Table__footerRow', rowClass),
+            columns: this._getFooterColumns(),
+            style: {
+              height: '25px',
+              width,
+            },
+          })}
       </div>
     );
   }
@@ -484,6 +519,32 @@ export default class Table extends React.PureComponent {
         style={style}
         title={title}>
         {renderedCell}
+      </div>
+    );
+  }
+
+  _createFooter({column, index}) {
+    const {footerClassName, footerStyle} = this.props;
+
+    const {footerRenderer, columnData, dataKey, label} = column.props;
+
+    return (
+      <div
+        key={`Footer-Col${index}`}
+        className={clsx(
+          'ReactVirtualized__Table__footerColumn',
+          footerClassName,
+          column.props.footerClassName,
+        )}
+        style={this._getFlexStyleForColumn(column, {
+          ...footerStyle,
+          ...column.props.footerStyle,
+        })}>
+        {footerRenderer({
+          columnData,
+          dataKey,
+          label,
+        })}
       </div>
     );
   }
@@ -545,8 +606,8 @@ export default class Table extends React.PureComponent {
       const newSortDirection = isFirstTimeSort
         ? defaultSortDirection
         : sortDirection === SortDirection.DESC
-          ? SortDirection.ASC
-          : SortDirection.DESC;
+        ? SortDirection.ASC
+        : SortDirection.DESC;
 
       const onClick = event => {
         sortEnabled &&
@@ -688,6 +749,12 @@ export default class Table extends React.PureComponent {
     const items = disableHeader ? [] : React.Children.toArray(children);
 
     return items.map((column, index) => this._createHeader({column, index}));
+  }
+
+  _getFooterColumns() {
+    const {children, disableFooter} = this.props;
+    const items = disableFooter ? [] : React.Children.toArray(children);
+    return items.map((column, index) => this._createFooter({column, index}));
   }
 
   _getRowHeight(rowIndex) {

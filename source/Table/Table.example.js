@@ -190,6 +190,7 @@ export default class TableExample extends React.PureComponent {
                 headerClassName={styles.headerColumn}
                 headerHeight={headerHeight}
                 height={height}
+                disableFooter={false}
                 noRowsRenderer={this._noRowsRenderer}
                 overscanRowCount={overscanRowCount}
                 rowClassName={this._rowClassName}
@@ -214,6 +215,10 @@ export default class TableExample extends React.PureComponent {
                   dataKey="name"
                   disableSort={!this._isSortEnabled()}
                   headerRenderer={this._headerRenderer}
+                  footerRenderer={(...args) => {
+                    console.log(args);
+                    return <div>Name</div>;
+                  }}
                   width={90}
                 />
                 <Column
@@ -302,8 +307,8 @@ export default class TableExample extends React.PureComponent {
 
     return list
       .sortBy(item => item[sortBy])
-      .update(
-        list => (sortDirection === SortDirection.DESC ? list.reverse() : list),
+      .update(list =>
+        sortDirection === SortDirection.DESC ? list.reverse() : list,
       );
   }
 
